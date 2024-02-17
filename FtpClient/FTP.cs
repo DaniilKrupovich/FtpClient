@@ -1,16 +1,14 @@
 using System.Data;
-using System.Diagnostics;
 using static FtpClient.FTPClient;
-using static System.Net.WebRequestMethods;
 
 namespace FtpClient
 {
-    public partial class Form1 : Form
+    public partial class FTP : Form
     {
         private DataTable _listFiles;
         private FTPClient _client;
         private bool _isConnect = false;
-        public Form1()
+        public FTP()
         {
             InitializeComponent();
         }
@@ -91,6 +89,10 @@ namespace FtpClient
             {
                 _listFiles.Rows.Add(s.Name, s.CreateTime);
             }
+            if (!backgroundWorker.IsBusy)
+            {
+                backgroundWorker.RunWorkerAsync();
+            }
         }
 
         private void _btnDownloadFile_Click(object sender, EventArgs e)
@@ -109,6 +111,10 @@ namespace FtpClient
 
         private void _btnClear_Click(object sender, EventArgs e)
         {
+            if (backgroundWorker.IsBusy)
+            {
+                backgroundWorker.CancelAsync();
+            }
             _client.Host = "";
             _client.UserName = "";
             _client.Password = "";
@@ -143,6 +149,55 @@ namespace FtpClient
                 MessageBox.Show(ex.Message.ToString(), "Ошибка",
                        MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void backgroundWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            while (_isConnect)
+            {
+                Thread.Sleep(2000);
+                foreach (var fileOnServer in _client.ListDirectory(""))
+                {
+                    bool fileExists = false;
+
+                    foreach (DataRow row in _listFiles.Rows)
+                    {
+                        string fileName = row["File Name"].ToString();
+                        if (fileName == fileOnServer.Name)
+                        {
+                            fileExists = true;
+                            break;
+                        }
+                    }
+                    if (!fileExists)
+                    {
+                        _listFiles.Rows.Add(fileOnServer.Name, fileOnServer.CreateTime);
+                        backgroundWorker.ReportProgress(0);
+                        using var stream = _client.GetImageStream(fileOnServer.Name);
+                        if (stream != null)
+                        {
+                            var image = Image.FromStream(stream);
+                            _pictureBox.Image = image;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Возникла ошибка при загрузке файла", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        private void backgroundWorker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            MessageBox.Show("BackWork end", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void backgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            _listFilesFromFtpServer.Update();
         }
     }
 }

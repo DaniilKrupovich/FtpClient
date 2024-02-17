@@ -1,6 +1,6 @@
 ﻿namespace FtpClient
 {
-    partial class Form1
+    partial class FTP
     {
         /// <summary>
         ///  Required designer variable.
@@ -41,6 +41,7 @@
             _btnDownloadFile = new Button();
             _btnClear = new Button();
             _pictureBox = new PictureBox();
+            backgroundWorker = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)_listFilesFromFtpServer).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_pictureBox).BeginInit();
             SuspendLayout();
@@ -175,7 +176,15 @@
             _pictureBox.TabIndex = 12;
             _pictureBox.TabStop = false;
             // 
-            // Form1
+            // backgroundWorker
+            // 
+            backgroundWorker.WorkerReportsProgress = true;
+            backgroundWorker.WorkerSupportsCancellation = true;
+            backgroundWorker.DoWork += backgroundWorker_DoWork;
+            backgroundWorker.ProgressChanged += backgroundWorker_ProgressChanged;
+            backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+            // 
+            // FTP
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -196,9 +205,9 @@
             Controls.Add(_listFilesFromFtpServer);
             MaximumSize = new Size(1099, 622);
             MinimumSize = new Size(1099, 622);
-            Name = "Form1";
+            Name = "FTP";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Form1";
+            Text = "FTP";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)_listFilesFromFtpServer).EndInit();
             ((System.ComponentModel.ISupportInitialize)_pictureBox).EndInit();
@@ -221,5 +230,6 @@
         private Button _btnDownloadFile;
         private Button _btnClear;
         private PictureBox _pictureBox;
+        private System.ComponentModel.BackgroundWorker backgroundWorker;
     }
 }
