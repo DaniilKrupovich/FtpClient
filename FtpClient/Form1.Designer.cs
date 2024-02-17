@@ -39,8 +39,10 @@
             _chBoxAnonim = new CheckBox();
             _btnGetFiles = new Button();
             _btnDownloadFile = new Button();
-            _btnDisconnect = new Button();
+            _btnClear = new Button();
+            _pictureBox = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)_listFilesFromFtpServer).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)_pictureBox).BeginInit();
             SuspendLayout();
             // 
             // _listFilesFromFtpServer
@@ -55,8 +57,9 @@
             _listFilesFromFtpServer.ReadOnly = true;
             _listFilesFromFtpServer.RowHeadersVisible = false;
             _listFilesFromFtpServer.RowHeadersWidth = 51;
-            _listFilesFromFtpServer.Size = new Size(627, 281);
+            _listFilesFromFtpServer.Size = new Size(630, 323);
             _listFilesFromFtpServer.TabIndex = 0;
+            _listFilesFromFtpServer.CellClick += _listFilesFromFtpServer_CellClick;
             // 
             // _lblHostAddress
             // 
@@ -116,7 +119,7 @@
             _btnConnect.Name = "_btnConnect";
             _btnConnect.Size = new Size(123, 29);
             _btnConnect.TabIndex = 7;
-            _btnConnect.Text = "Connect";
+            _btnConnect.Text = "Test Connection";
             _btnConnect.UseVisualStyleBackColor = true;
             _btnConnect.Click += _btnConnect_Click;
             // 
@@ -151,22 +154,35 @@
             _btnDownloadFile.UseVisualStyleBackColor = true;
             _btnDownloadFile.Click += _btnDownloadFile_Click;
             // 
-            // _btnDisconnect
+            // _btnClear
             // 
-            _btnDisconnect.Location = new Point(283, 217);
-            _btnDisconnect.Name = "_btnDisconnect";
-            _btnDisconnect.Size = new Size(123, 29);
-            _btnDisconnect.TabIndex = 11;
-            _btnDisconnect.Text = "Disconnect";
-            _btnDisconnect.UseVisualStyleBackColor = true;
-            _btnDisconnect.Click += _btnDisconnect_Click;
+            _btnClear.Location = new Point(283, 217);
+            _btnClear.Name = "_btnClear";
+            _btnClear.Size = new Size(123, 29);
+            _btnClear.TabIndex = 11;
+            _btnClear.Text = "Clear";
+            _btnClear.UseVisualStyleBackColor = true;
+            _btnClear.Click += _btnClear_Click;
+            // 
+            // _pictureBox
+            // 
+            _pictureBox.BackColor = SystemColors.ControlLightLight;
+            _pictureBox.BorderStyle = BorderStyle.FixedSingle;
+            _pictureBox.Location = new Point(636, 8);
+            _pictureBox.Name = "_pictureBox";
+            _pictureBox.Size = new Size(440, 560);
+            _pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+            _pictureBox.TabIndex = 12;
+            _pictureBox.TabStop = false;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(1081, 575);
-            Controls.Add(_btnDisconnect);
+            Controls.Add(_pictureBox);
+            Controls.Add(_btnClear);
             Controls.Add(_btnDownloadFile);
             Controls.Add(_btnGetFiles);
             Controls.Add(_chBoxAnonim);
@@ -178,10 +194,14 @@
             Controls.Add(_tbHostAddress);
             Controls.Add(_lblHostAddress);
             Controls.Add(_listFilesFromFtpServer);
+            MaximumSize = new Size(1099, 622);
+            MinimumSize = new Size(1099, 622);
             Name = "Form1";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)_listFilesFromFtpServer).EndInit();
+            ((System.ComponentModel.ISupportInitialize)_pictureBox).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -199,6 +219,7 @@
         private CheckBox _chBoxAnonim;
         private Button _btnGetFiles;
         private Button _btnDownloadFile;
-        private Button _btnDisconnect;
+        private Button _btnClear;
+        private PictureBox _pictureBox;
     }
 }

@@ -64,7 +64,7 @@ namespace FtpClient
             _btnDownloadFile.Enabled = isConnect;
             _btnConnect.Enabled = !isConnect;
             _btnGetFiles.Enabled = isConnect;
-            _btnDisconnect.Enabled = isConnect;
+            _btnClear.Enabled = isConnect;
         }
 
         private void _chBoxAnonim_CheckedChanged(object sender, EventArgs e)
@@ -107,13 +107,42 @@ namespace FtpClient
             }
         }
 
-        private void _btnDisconnect_Click(object sender, EventArgs e)
+        private void _btnClear_Click(object sender, EventArgs e)
         {
             _client.Host = "";
             _client.UserName = "";
             _client.Password = "";
             _isConnect = false;
+            _chBoxAnonim.Checked = false;
+            _listFiles.Clear();
             EnableControl(_isConnect);
+        }
+
+        private void _listFilesFromFtpServer_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int index = _listFilesFromFtpServer.CurrentCell.RowIndex;
+                if (index > -1)
+                {
+                    using var stream = _client.GetImageStream(Convert.ToString(_listFiles.Rows[index][0]));
+                    if (stream != null)
+                    {
+                        var image = Image.FromStream(stream);
+                        _pictureBox.Image = image;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Возникла ошибка при загрузке файла", "Ошибка",
+                       MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString(), "Ошибка",
+                       MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

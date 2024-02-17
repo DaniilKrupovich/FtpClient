@@ -68,6 +68,35 @@ namespace FtpClient
             }
         }
 
+        public Stream GetImageStream(string fileName)
+        {
+            try
+            {
+                _ftpRequest = (FtpWebRequest)WebRequest.Create($"ftp://{_Host}/{fileName}");
+                _ftpRequest.Credentials = new NetworkCredential(_UserName, _Password);
+
+                _ftpRequest.UseBinary = true;
+                _ftpRequest.UsePassive = true;
+                _ftpRequest.KeepAlive = true;
+                _ftpRequest.EnableSsl = _UseSSL;
+
+                _ftpRequest.Method = WebRequestMethods.Ftp.DownloadFile;
+                _ftpResponse = (FtpWebResponse)_ftpRequest.GetResponse();
+
+                using var ftpStream = _ftpResponse.GetResponseStream();
+                var memoryStream = new MemoryStream();
+                ftpStream.CopyTo(memoryStream);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                _ftpResponse.Close();
+                return memoryStream;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            
+        }
+
         public void DownLoadFile(string fileName)
         {
             _ftpRequest = (FtpWebRequest)WebRequest.Create($"ftp://{_Host}/{fileName}");
@@ -81,19 +110,20 @@ namespace FtpClient
             _ftpRequest.Method = WebRequestMethods.Ftp.DownloadFile;
 
             _ftpResponse = (FtpWebResponse)_ftpRequest.GetResponse();
-            var ftpStream = _ftpResponse.GetResponseStream();
-            FileStream downloadFile = new FileStream($"C:\\Users\\Barsu4ok\\Desktop\\{fileName}", FileMode.Create, FileAccess.ReadWrite);
-
-            byte[] buffer = new byte[1024];
-            int size = 0;
-            while ((size = ftpStream.Read(buffer, 0, 1024)) > 0)
+            using (var ftpStream = _ftpResponse.GetResponseStream())
             {
-                downloadFile.Write(buffer, 0, size);
+                using (var downloadFile = new FileStream($"{Directory.GetCurrentDirectory()}\\Image\\{fileName}", FileMode.Create, FileAccess.ReadWrite))
+                {
 
+                    byte[] buffer = new byte[1024];
+                    int size = 0;
+                    while ((size = ftpStream.Read(buffer, 0, 1024)) > 0)
+                    {
+                        downloadFile.Write(buffer, 0, size);
+                    }
+                }
             }
-            downloadFile.Close();
             _ftpResponse.Close();
-            ftpStream.Close();
         }
         public FileStruct[] ListDirectory(string path)
         {
@@ -101,18 +131,15 @@ namespace FtpClient
             {
                 path = "/";
             }
-            //Создаем объект запроса
+
             _ftpRequest = (FtpWebRequest)WebRequest.Create("ftp://" + _Host + path);
-            //логин и пароль
+
             _ftpRequest.Credentials = new NetworkCredential(_UserName, _Password);
-            //команда фтп LIST
+
             _ftpRequest.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
 
             _ftpRequest.EnableSsl = _UseSSL;
-            //Получаем входящий поток
             _ftpResponse = (FtpWebResponse)_ftpRequest.GetResponse();
-
-            //переменная для хранения всей полученной информации
             string content = "";
 
             StreamReader sr = new StreamReader(_ftpResponse.GetResponseStream(), System.Text.Encoding.ASCII);
