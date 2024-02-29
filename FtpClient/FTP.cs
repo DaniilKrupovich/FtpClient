@@ -1,4 +1,6 @@
 using System.Data;
+using System.IO;
+using System.Net;
 using static FtpClient.FTPClient;
 
 namespace FtpClient
@@ -7,6 +9,7 @@ namespace FtpClient
     {
         private DataTable _listFiles;
         private FTPClient _client;
+        private string _lastFile;
         private bool _isConnect = false;
         public FTP()
         {
@@ -34,8 +37,26 @@ namespace FtpClient
                 {
                     if (_chBoxAnonim.Checked == true)
                     {
-                        _client = new FTPClient(_tbHostAddress.Text, "Anonymous");
-                        _isConnect = true;
+                        try
+                        {
+                            if (TestConnection(_tbHostAddress.Text))
+                            {
+                                _client = new FTPClient(_tbHostAddress.Text, "Anonymous");
+                                _isConnect = true;
+                                _chBoxAnonim.Enabled = false;
+                            }
+                            else
+                            {
+                                _isConnect = false;
+                                MessageBox.Show("Ошибка при подключении к серверу!\nВозможно немерно введены параметры", "Ошибка",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            MessageBox.Show("Ошибка при подключении к серверу!\nВозможно немерно введены параметры", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
                     else
                     {
@@ -56,10 +77,25 @@ namespace FtpClient
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        private bool TestConnection(string host)
+        {
+            bool resultTest = false;
+            try
+            {
+                var ftpRequest = (FtpWebRequest)WebRequest.Create($"ftp://{host}/");
+                ftpRequest.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                var ftpResponse = (FtpWebResponse)ftpRequest.GetResponse();
+                if (ftpResponse != null)
+                    resultTest = true;
+            }
+            catch
+            {
+                resultTest = false;
+            }
+            return resultTest;
+        }
         private void EnableControl(bool isConnect)
         {
-            _btnDownloadFile.Enabled = isConnect;
             _btnConnect.Enabled = !isConnect;
             _btnGetFiles.Enabled = isConnect;
             _btnClear.Enabled = isConnect;
@@ -84,10 +120,14 @@ namespace FtpClient
 
         private void _btnGetFiles_Click(object sender, EventArgs e)
         {
+            _listFiles.Clear();
             FileStruct[] FileList = _client.ListDirectory("");
             foreach (FileStruct s in FileList)
             {
+                if (IsImageFile(s.Name))
+                {
                 _listFiles.Rows.Add(s.Name, s.CreateTime);
+                }
             }
             if (!backgroundWorker.IsBusy)
             {
@@ -95,18 +135,10 @@ namespace FtpClient
             }
         }
 
-        private void _btnDownloadFile_Click(object sender, EventArgs e)
+        private bool IsImageFile(string filePath)
         {
-            int index = _listFilesFromFtpServer.CurrentCell.RowIndex;
-            if (index > -1)
-            {
-                _client.DownLoadFile(Convert.ToString(_listFiles.Rows[index][0]));
-            }
-            else
-            {
-                MessageBox.Show("Сперва выберите файл", "Ошибка",
-                       MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            string extension = Path.GetExtension(filePath).ToLower();
+            return extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".bmp" || extension == ".gif";
         }
 
         private void _btnClear_Click(object sender, EventArgs e)
@@ -120,6 +152,7 @@ namespace FtpClient
             _client.Password = "";
             _isConnect = false;
             _chBoxAnonim.Checked = false;
+            _chBoxAnonim.Enabled = true;
             _listFiles.Clear();
             EnableControl(_isConnect);
         }
@@ -131,13 +164,13 @@ namespace FtpClient
                 int index = _listFilesFromFtpServer.CurrentCell.RowIndex;
                 if (index > -1)
                 {
-                    using var stream = _client.GetImageStream(Convert.ToString(_listFiles.Rows[index][0]));
-                    if (stream != null)
+                    try
                     {
+                        using var stream = _client.GetImageStream(Convert.ToString(_listFiles.Rows[index][0]));
                         var image = Image.FromStream(stream);
                         _pictureBox.Image = image;
                     }
-                    else
+                    catch(Exception ex)
                     {
                         MessageBox.Show("Возникла ошибка при загрузке файла", "Ошибка",
                        MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -155,9 +188,10 @@ namespace FtpClient
         {
             while (_isConnect)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(500);
                 foreach (var fileOnServer in _client.ListDirectory(""))
                 {
+
                     bool fileExists = false;
 
                     foreach (DataRow row in _listFiles.Rows)
@@ -171,15 +205,15 @@ namespace FtpClient
                     }
                     if (!fileExists)
                     {
-                        _listFiles.Rows.Add(fileOnServer.Name, fileOnServer.CreateTime);
-                        backgroundWorker.ReportProgress(0);
-                        using var stream = _client.GetImageStream(fileOnServer.Name);
-                        if (stream != null)
+                        try
                         {
-                            var image = Image.FromStream(stream);
-                            _pictureBox.Image = image;
+                            if (IsImageFile(fileOnServer.Name))
+                            {
+                            _listFiles.Rows.Add(fileOnServer.Name, fileOnServer.CreateTime);
+                            backgroundWorker.ReportProgress(0);
+                            }
                         }
-                        else
+                        catch(Exception ex)
                         {
                             MessageBox.Show("Возникла ошибка при загрузке файла", "Ошибка",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -192,12 +226,12 @@ namespace FtpClient
 
         private void backgroundWorker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
         {
-            MessageBox.Show("BackWork end", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //MessageBox.Show("BackWork end", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void backgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
-            _listFilesFromFtpServer.Update();
+            _listFilesFromFtpServer.Refresh();
         }
     }
 }

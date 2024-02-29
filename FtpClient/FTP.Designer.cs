@@ -38,7 +38,6 @@
             _btnConnect = new Button();
             _chBoxAnonim = new CheckBox();
             _btnGetFiles = new Button();
-            _btnDownloadFile = new Button();
             _btnClear = new Button();
             _pictureBox = new PictureBox();
             backgroundWorker = new System.ComponentModel.BackgroundWorker();
@@ -145,23 +144,13 @@
             _btnGetFiles.UseVisualStyleBackColor = true;
             _btnGetFiles.Click += _btnGetFiles_Click;
             // 
-            // _btnDownloadFile
-            // 
-            _btnDownloadFile.Location = new Point(142, 217);
-            _btnDownloadFile.Name = "_btnDownloadFile";
-            _btnDownloadFile.Size = new Size(123, 29);
-            _btnDownloadFile.TabIndex = 10;
-            _btnDownloadFile.Text = "Download File";
-            _btnDownloadFile.UseVisualStyleBackColor = true;
-            _btnDownloadFile.Click += _btnDownloadFile_Click;
-            // 
             // _btnClear
             // 
-            _btnClear.Location = new Point(283, 217);
+            _btnClear.Location = new Point(142, 217);
             _btnClear.Name = "_btnClear";
             _btnClear.Size = new Size(123, 29);
             _btnClear.TabIndex = 11;
-            _btnClear.Text = "Clear";
+            _btnClear.Text = "Disconnect";
             _btnClear.UseVisualStyleBackColor = true;
             _btnClear.Click += _btnClear_Click;
             // 
@@ -192,7 +181,6 @@
             ClientSize = new Size(1081, 575);
             Controls.Add(_pictureBox);
             Controls.Add(_btnClear);
-            Controls.Add(_btnDownloadFile);
             Controls.Add(_btnGetFiles);
             Controls.Add(_chBoxAnonim);
             Controls.Add(_btnConnect);
@@ -227,7 +215,6 @@
         private Button _btnConnect;
         private CheckBox _chBoxAnonim;
         private Button _btnGetFiles;
-        private Button _btnDownloadFile;
         private Button _btnClear;
         private PictureBox _pictureBox;
         private System.ComponentModel.BackgroundWorker backgroundWorker;

@@ -1,11 +1,5 @@
-﻿using Microsoft.VisualBasic.ApplicationServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
+﻿using System.Net;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FtpClient
 {
@@ -95,35 +89,6 @@ namespace FtpClient
                 return null;
             }
             
-        }
-
-        public void DownLoadFile(string fileName)
-        {
-            _ftpRequest = (FtpWebRequest)WebRequest.Create($"ftp://{_Host}/{fileName}");
-            _ftpRequest.Credentials = new NetworkCredential(_UserName, _Password);
-
-            _ftpRequest.UseBinary = true;
-            _ftpRequest.UsePassive = true;
-            _ftpRequest.KeepAlive = true;
-            _ftpRequest.EnableSsl = _UseSSL;
-
-            _ftpRequest.Method = WebRequestMethods.Ftp.DownloadFile;
-
-            _ftpResponse = (FtpWebResponse)_ftpRequest.GetResponse();
-            using (var ftpStream = _ftpResponse.GetResponseStream())
-            {
-                using (var downloadFile = new FileStream($"{Directory.GetCurrentDirectory()}\\Image\\{fileName}", FileMode.Create, FileAccess.ReadWrite))
-                {
-
-                    byte[] buffer = new byte[1024];
-                    int size = 0;
-                    while ((size = ftpStream.Read(buffer, 0, 1024)) > 0)
-                    {
-                        downloadFile.Write(buffer, 0, size);
-                    }
-                }
-            }
-            _ftpResponse.Close();
         }
         public FileStruct[] ListDirectory(string path)
         {
