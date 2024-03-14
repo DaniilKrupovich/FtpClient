@@ -39,7 +39,7 @@ namespace FtpClient
                     {
                         try
                         {
-                            if (TestConnection(_tbHostAddress.Text))
+                            if (TestConnectionAnonymous(_tbHostAddress.Text))
                             {
                                 _client = new FTPClient(_tbHostAddress.Text, "Anonymous");
                                 _isConnect = true;
@@ -60,8 +60,22 @@ namespace FtpClient
                     }
                     else
                     {
-                        _client = new FTPClient(_tbHostAddress.Text, _tbUserName.Text, _tbPassword.Text);
-                        _isConnect = true;
+                        if (TestConnectionUser(_tbHostAddress.Text))
+                        {
+                            _client = new FTPClient(_tbHostAddress.Text, _tbUserName.Text, _tbPassword.Text);
+                            _isConnect = true;
+                            _tbHostAddress.Enabled = false;
+                            _tbUserName.Enabled = false;
+                            _tbPassword.Enabled = false;
+                            _chBoxAnonim.Enabled = false;
+                        }
+                        else
+                        {
+                            _isConnect = false;
+                            MessageBox.Show("Ошибка при подключении к серверу!\nВозможно немерно введены параметры", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        
                     }
                 }
                 catch (Exception ex)
@@ -77,13 +91,32 @@ namespace FtpClient
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private bool TestConnection(string host)
+        private bool TestConnectionAnonymous(string host)
         {
             bool resultTest = false;
             try
             {
                 var ftpRequest = (FtpWebRequest)WebRequest.Create($"ftp://{host}/");
                 ftpRequest.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                var ftpResponse = (FtpWebResponse)ftpRequest.GetResponse();
+                if (ftpResponse != null)
+                    resultTest = true;
+            }
+            catch
+            {
+                resultTest = false;
+            }
+            return resultTest;
+        }
+        private bool TestConnectionUser(string host)
+        {
+            bool resultTest = false;
+            try
+            {
+                var ftpRequest = (FtpWebRequest)WebRequest.Create($"ftp://{host}/");
+                ftpRequest.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                ftpRequest.Credentials = new NetworkCredential(_tbUserName.Text, _tbPassword.Text);
+                ftpRequest.EnableSsl = false;
                 var ftpResponse = (FtpWebResponse)ftpRequest.GetResponse();
                 if (ftpResponse != null)
                     resultTest = true;
@@ -153,7 +186,11 @@ namespace FtpClient
             _isConnect = false;
             _chBoxAnonim.Checked = false;
             _chBoxAnonim.Enabled = true;
+            _tbHostAddress.Enabled = true;
+            _tbUserName.Enabled = true;
+            _tbPassword.Enabled = true;
             _listFiles.Clear();
+            _pictureBox.Image = null;
             EnableControl(_isConnect);
         }
 
