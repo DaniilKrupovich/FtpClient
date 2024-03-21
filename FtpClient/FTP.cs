@@ -226,11 +226,30 @@ namespace FtpClient
             while (_isConnect)
             {
                 Thread.Sleep(500);
-                foreach (var fileOnServer in _client.ListDirectory(""))
+                var f = _client.ListDirectory("");
+                foreach (DataRow row in _listFiles.Rows)
+                {
+
+                    bool fileDelete = true;
+                    string fileApp = row["File Name"].ToString();
+                    foreach (var file in f)
+                    {
+                        string fileServer = file.Name;
+                        if (fileApp == fileServer)
+                        {
+                            fileDelete = false;
+                        }
+                    }
+                    if (fileDelete)
+                    {
+                        _listFiles.Rows.Remove(row);
+                        backgroundWorker.ReportProgress(0);
+                    }
+                }
+                foreach (var fileOnServer in f)
                 {
 
                     bool fileExists = false;
-
                     foreach (DataRow row in _listFiles.Rows)
                     {
                         string fileName = row["File Name"].ToString();
